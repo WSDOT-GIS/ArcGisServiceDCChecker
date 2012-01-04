@@ -1,4 +1,5 @@
-﻿# ArcGIS Service Non-Direct-Connect Checker #
+ArcGIS Service Non-Direct-Connect Checker
+=========================================
 This program checks all of the map services on specific ArcGIS Servers and reports the connection properties of the data used by those services.
 
 Copyright (C) 2011 Washington State Department of Transportation
