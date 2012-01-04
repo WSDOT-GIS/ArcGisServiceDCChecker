@@ -1,0 +1,21 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ArcGisServiceDCChecker.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="Servers" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">myserver1,myserver2,myserver3</Value>
+    </Setting>
+    <Setting Name="OutputFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">results.html</Value>
+    </Setting>
+    <Setting Name="JQueryUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js</Value>
+    </Setting>
+    <Setting Name="JQueryUIUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js</Value>
+    </Setting>
+    <Setting Name="JQueryUICssUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
