@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 Created by Jeff Jacobson
 2011-08-25
 
-
 ## Configuration ##
 Edit the .config file before running the .exe file.  The settings are described below.
 
@@ -36,6 +35,7 @@ This setting specifies the path to the JQuery JavaScript library, which is used 
 ## Limitations ##
 * In order to run the application, you must be an administrator on all of the servers specified in the 'Servers' setting.
 * Map services that are stopped will not be checked.
+* This program is only compatible with version 10 and higher ArcGIS Servers.
 
 ## Notes ##
 * If there are any problems accessing the data of a layer, it will be noted in the "Error" column of the row corresponding to that layer.
