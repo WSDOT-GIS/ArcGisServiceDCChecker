@@ -93,20 +93,20 @@ namespace ArcGisServiceDCChecker
 		/// Each <see cref="KeyValuePair&lt;TKey,KValue&gt;.Key"/> corresponds to a data source name.
 		/// Each value is a <see cref="Dictionary&lt;TKey,TValue&gt;"/> of connection properties.
 		/// </returns>
-		public static List<KeyValuePair<string, Dictionary<string, object>>> GetConnectionProperties(this IMapServer mapServer, out List<string> propertyNames)
+		public static Dictionary<string, Dictionary<string, object>> GetConnectionProperties(this IMapServer mapServer /*, out List<string> propertyNames*/ )
 		{
 			IMapLayerInfos mapLayerInfos = null;
 			IMapLayerInfo mapLayerInfo = null;
 			IMapServerDataAccess mapServerDA = null;
 			IMapServerInfo mapServerInfo = null; ;
-			propertyNames = new List<string>();
+			////propertyNames = new List<string>();
 			IDataset dataset = null;
 			IPropertySet connectionProperties = null;
 			object namesObj, valuesObj;
 			string[] names;
 			object[] values;
 
-			var output = new List<KeyValuePair<string, Dictionary<string, object>>>();
+			var output = new Dictionary<string, Dictionary<string, object>>();
 
 			try
 			{
@@ -133,11 +133,11 @@ namespace ArcGisServiceDCChecker
 					catch (NotImplementedException ex)
 					{
 						dict.Add("Error", ex.Message);
-						output.Add(new KeyValuePair<string, Dictionary<string, object>>(mapLayerInfo.Name, dict));
-						if (!propertyNames.Contains("Error"))
-						{
-							propertyNames.Add("Error");
-						}
+						output.Add(mapLayerInfo.Name, dict);
+						////if (!propertyNames.Contains("Error"))
+						////{
+						////    propertyNames.Add("Error");
+						////}
 						continue;
 					}
 
@@ -154,13 +154,13 @@ namespace ArcGisServiceDCChecker
 						for (int j = 0; j < names.Length; j++)
 						{
 							name = names[j];
-							if (!propertyNames.Contains(name))
-							{
-								propertyNames.Add(name);
-							}
+							////if (!propertyNames.Contains(name))
+							////{
+							////    propertyNames.Add(name);
+							////}
 							dict.Add(name, values[j]);
 						}
-						output.Add(new KeyValuePair<string, Dictionary<string, object>>(dataset.Name, dict));
+						output.Add(dataset.Name, dict);
 					}
 				}
 			}
