@@ -5,8 +5,6 @@
 	function processData(data) {
 		var serverName, server, currentSection, mapService, mapServiceSection, i, il, servicePropertyList, connectionProperties, table;
 		
-		console.debug(data);
-		
 		function getConnectionPropertyNames(/*{Array}*/ connectionProperties) {
 			var i, l, props, name, names = {}, output = [];
 			
