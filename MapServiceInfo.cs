@@ -9,7 +9,8 @@ namespace ArcGisServiceDCChecker
 	{
 		public string MapServerName { get; set; }
 		public string SourceDocumentPath { get; set; }
-		public Dictionary<string, Dictionary<string, object>> ConnectionProperties { get; set; }
+		////public Dictionary<string, Dictionary<string, object>> ConnectionProperties { get; set; }
+		public List<ConnectionProperties> ConnectionProperties { get; set; }
 		public string ErrorMessage { get; set; }
 	}
 }

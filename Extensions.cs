@@ -93,7 +93,7 @@ namespace ArcGisServiceDCChecker
 		/// Each <see cref="KeyValuePair&lt;TKey,KValue&gt;.Key"/> corresponds to a data source name.
 		/// Each value is a <see cref="Dictionary&lt;TKey,TValue&gt;"/> of connection properties.
 		/// </returns>
-		public static Dictionary<string, Dictionary<string, object>> GetConnectionProperties(this IMapServer mapServer /*, out List<string> propertyNames*/ )
+		public static List<ConnectionProperties> GetConnectionProperties(this IMapServer mapServer /*, out List<string> propertyNames*/ )
 		{
 			IMapLayerInfos mapLayerInfos = null;
 			IMapLayerInfo mapLayerInfo = null;
@@ -101,12 +101,12 @@ namespace ArcGisServiceDCChecker
 			IMapServerInfo mapServerInfo = null; ;
 			////propertyNames = new List<string>();
 			IDataset dataset = null;
-			IPropertySet connectionProperties = null;
+			IPropertySet connectionPropertySet = null;
 			object namesObj, valuesObj;
 			string[] names;
 			object[] values;
 
-			var output = new Dictionary<string, Dictionary<string, object>>();
+			var output = new List<ConnectionProperties>();
 
 			try
 			{
@@ -117,6 +117,8 @@ namespace ArcGisServiceDCChecker
 				// Loop through all of the layers in the map service...
 				mapLayerInfos = mapServerInfo.MapLayerInfos;
 
+				ConnectionProperties connectionProperties;
+
 				for (int i = 0, l = mapLayerInfos.Count; i < l; i++)
 				{
 					mapLayerInfo = mapLayerInfos.get_Element(i);
@@ -125,48 +127,38 @@ namespace ArcGisServiceDCChecker
 						continue;
 					}
 					
-					var dict = new Dictionary<string, object>();
+					connectionProperties = new ConnectionProperties(mapLayerInfo.Name);
 					try
 					{
 						dataset = mapServerDA.GetDataSource(mapName, i) as IDataset;
 					}
 					catch (NotImplementedException ex)
 					{
-						dict.Add("Error", ex.Message);
-						output.Add(mapLayerInfo.Name, dict);
-						////if (!propertyNames.Contains("Error"))
-						////{
-						////    propertyNames.Add("Error");
-						////}
+						connectionProperties["error"] = ex.Message;
+						output.Add(connectionProperties);
 						continue;
 					}
 
 					if (dataset != null)
 					{
-						connectionProperties = dataset.Workspace.ConnectionProperties;
-						connectionProperties.GetAllProperties(out namesObj, out valuesObj);
+						connectionPropertySet = dataset.Workspace.ConnectionProperties;
+						connectionPropertySet.GetAllProperties(out namesObj, out valuesObj);
 						names = namesObj as string[];
 						values = valuesObj as object[];
-
-						
 
 						string name;
 						for (int j = 0; j < names.Length; j++)
 						{
 							name = names[j];
-							////if (!propertyNames.Contains(name))
-							////{
-							////    propertyNames.Add(name);
-							////}
-							dict.Add(name, values[j]);
+							connectionProperties[name] = values[j];
 						}
-						output.Add(dataset.Name, dict);
+						output.Add(connectionProperties);
 					}
 				}
 			}
 			finally
 			{
-				foreach (var item in new object[] {mapLayerInfos, mapLayerInfo, mapServerDA, mapServerInfo, dataset, connectionProperties})
+				foreach (var item in new object[] {mapLayerInfos, mapLayerInfo, mapServerDA, mapServerInfo, dataset, connectionPropertySet})
 				{
 					if (item != null)
 					{

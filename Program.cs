@@ -25,6 +25,7 @@ using ESRI.ArcGIS.ADF.Connection.AGS;
 using ESRI.ArcGIS.Carto;
 using ESRI.ArcGIS.esriSystem;
 using ESRI.ArcGIS.Server;
+using System.Web.Script.Serialization;
 
 namespace ArcGisServiceDCChecker
 {
@@ -38,7 +39,6 @@ namespace ArcGisServiceDCChecker
 			// Get the server names from the config.
 			var servers = Settings.Default.Servers.Split(',');
 
-			var output = new Dictionary<string, List<MapServiceInfo>>();
 
 			Console.Error.WriteLine("Getting license...");
 			//ESRI License Initializer generated code.
@@ -52,6 +52,22 @@ namespace ArcGisServiceDCChecker
 			}
 			Console.Error.WriteLine("License acquired.");
 
+			Dictionary<string, List<MapServiceInfo>> output;
+			output = CollectMapServerInfo(servers);
+
+			var serializer = new JavaScriptSerializer();
+			string json = serializer.Serialize(output);
+			File.WriteAllText("MapServers.json", json);
+
+			//ESRI License Initializer generated code.
+			//Do not make any call to ArcObjects after ShutDownApplication()
+			_aoLicenseInitializer.ShutdownApplication();
+		}
+
+		private static Dictionary<string, List<MapServiceInfo>> CollectMapServerInfo(IEnumerable<string> servers)
+		{
+			Dictionary<string, List<MapServiceInfo>> output;
+			output = new Dictionary<string, List<MapServiceInfo>>();
 			AGSServerConnection connection = null;
 			IServerObjectManager4 som = null;
 			IServerContext ctxt = null;
@@ -81,6 +97,7 @@ namespace ArcGisServiceDCChecker
 							socInfos = som.GetConfigurationInfos();
 							// Get the first service from the list.
 							socInfo = socInfos.Next() as IServerObjectConfigurationInfo2;
+
 							// Loop through the list of services...
 							while (socInfo != null)
 							{
@@ -155,8 +172,6 @@ namespace ArcGisServiceDCChecker
 					{
 						connection.Dispose();
 					}
-
-					output.Add(host, mapServiceInfos);
 				}
 			}
 			finally
@@ -175,13 +190,7 @@ namespace ArcGisServiceDCChecker
 					Marshal.ReleaseComObject(som);
 				}
 			}
-
-
-
-
-			//ESRI License Initializer generated code.
-			//Do not make any call to ArcObjects after ShutDownApplication()
-			_aoLicenseInitializer.ShutdownApplication();
+			return output;
 		}
 	}
 }
