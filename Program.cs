@@ -25,7 +25,8 @@ using ESRI.ArcGIS.ADF.Connection.AGS;
 using ESRI.ArcGIS.Carto;
 using ESRI.ArcGIS.esriSystem;
 using ESRI.ArcGIS.Server;
-using System.Web.Script.Serialization;
+using Newtonsoft.Json;
+////using System.Web.Script.Serialization;
 
 namespace ArcGisServiceDCChecker
 {
@@ -36,6 +37,30 @@ namespace ArcGisServiceDCChecker
 		[STAThread()]
 		static void Main(string[] args)
 		{
+			Dictionary<string, List<MapServiceInfo>> output;
+			////JavaScriptSerializer serializer;
+
+			var serializerSettings = new JsonSerializerSettings
+			{
+				Formatting = Formatting.Indented,
+			};
+#if DEBUG
+			if (File.Exists("MapServers.json"))
+			{
+				////serializer = new JavaScriptSerializer();
+				////output = serializer.Deserialize<Dictionary<string, List<MapServiceInfo>>>(File.ReadAllText("MapServers.json"));
+
+				output = JsonConvert.DeserializeObject<Dictionary<string, List<MapServiceInfo>>>(File.ReadAllText("MapServers.json"));
+
+				// Write to CSV...
+				using (StreamWriter writer = new StreamWriter("MapServers.csv"))
+				{
+					output.ToCsv(writer);
+				}
+				return;
+			}
+#endif
+
 			// Get the server names from the config.
 			var servers = Settings.Default.Servers.Split(',');
 
@@ -52,16 +77,26 @@ namespace ArcGisServiceDCChecker
 			}
 			Console.Error.WriteLine("License acquired.");
 
-			Dictionary<string, List<MapServiceInfo>> output;
 			output = CollectMapServerInfo(servers);
 
-			var serializer = new JavaScriptSerializer();
-			string json = serializer.Serialize(output);
+			////serializer = new JavaScriptSerializer();
+			////string json = serializer.Serialize(output);
+			////File.WriteAllText("MapServers.json", json);
+
+			string json = JsonConvert.SerializeObject(output, serializerSettings);
 			File.WriteAllText("MapServers.json", json);
 
-			//ESRI License Initializer generated code.
-			//Do not make any call to ArcObjects after ShutDownApplication()
-			_aoLicenseInitializer.ShutdownApplication();
+
+			// Write to CSV...
+			using (StreamWriter writer = new StreamWriter("MapServers.csv"))
+			{
+				output.ToCsv(writer);
+			}
+
+
+			//////ESRI License Initializer generated code.
+			//////Do not make any call to ArcObjects after ShutDownApplication()
+			////_aoLicenseInitializer.ShutdownApplication();
 		}
 
 		private static Dictionary<string, List<MapServiceInfo>> CollectMapServerInfo(IEnumerable<string> servers)
@@ -101,7 +136,7 @@ namespace ArcGisServiceDCChecker
 							// Loop through the list of services...
 							while (socInfo != null)
 							{
-								mapServiceInfo = new MapServiceInfo { MapServerName = socInfo.Name };
+								mapServiceInfo = new MapServiceInfo { MapServiceName = socInfo.Name };
 								try
 								{
 									// Proceed only if the current service is a "MapServer".

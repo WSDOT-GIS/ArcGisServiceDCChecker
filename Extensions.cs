@@ -31,59 +31,6 @@ namespace ArcGisServiceDCChecker
 	public static class Extensions
 	{
 		/// <summary>
-		/// Writes the results of the <see cref="GetConnectionProperties(this IMapServer, out List<string>)"/> method to an HTML table.
-		/// </summary>
-		/// <param name="connectionProperties">The results of <see cref="GetConnectionProperties(this IMapServer, out List<string>)"/></param>
-		/// <param name="propertyNames">The list of property names output from <see cref="GetConnectionProperties(this IMapServer, out List<string>)"/></param>
-		/// <param name="writer">A <see cref="TextWriter"/> that the HTML will be written to.</param>
-		public static void WriteHtmlTable(this IEnumerable<KeyValuePair<string, Dictionary<string, object>>> connectionProperties, List<string> propertyNames, TextWriter writer)
-		{
-			var nonDCRe = new Regex(@"^\d+$"); // This will match a purely numeric string;
-			writer.WriteLine("<table>");
-			writer.WriteLine("<thead><tr>");
-			writer.WriteLine("<th>Layer</th>");
-			for (int i = 0; i < propertyNames.Count; i++)
-			{
-				writer.Write("<th>{0}</th>", propertyNames[i]);
-			}
-			writer.WriteLine("</tr></thead>");
-			writer.WriteLine("<tbody>");
-			foreach (var layerKvp in connectionProperties)
-			{
-				writer.Write("<tr>");
-				writer.Write("<td>{0}</td>", layerKvp.Key);
-				Dictionary<string, object> props = layerKvp.Value;
-				string propName;
-				object value;
-				for (int i = 0; i < propertyNames.Count; i++)
-				{
-					propName = propertyNames[i];
-					if (props.Keys.Contains(propName))
-					{
-						value = props[propName];
-						if (string.Compare(propName, "Instance", StringComparison.OrdinalIgnoreCase) == 0)
-						{
-							string cls = value != null && nonDCRe.IsMatch(value.ToString()) ? "nondc" : "dc";
-							writer.Write("<td class='{1}'>{0}</td>", value, cls);
-						}
-						else
-						{
-							writer.Write("<td>{0}</td>", value);
-						}
-
-					}
-					else
-					{
-						writer.Write("<td />");
-					}
-				}
-				writer.Write("</tr>");
-			}
-			writer.WriteLine("</tbody>");
-			writer.WriteLine("</table>");
-		}
-
-		/// <summary>
 		/// Retrieves a list of connection properties from the layers of a <see cref="IMapServer"/>.
 		/// </summary>
 		/// <param name="mapServer">A map server.</param>
@@ -168,6 +115,125 @@ namespace ArcGisServiceDCChecker
 			}
 
 			return output;
+		}
+
+		/// <summary>
+		/// Flattens a dictionary containing lists of <see cref="MapServiceInfo"/> objects into a list of dictionaries.  This format is more suitable for 
+		/// conversion to a single table.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <param name="propertyNames"></param>
+		/// <returns></returns>
+		public static List<Dictionary<string, object>> Flatten(this IDictionary<string, List<MapServiceInfo>> input, out HashSet<string> propertyNames)
+		{
+			const string
+				serverNameName = "Server Name",
+				mapServiceNameName = "Map Service Name",
+				sourceDocumentPathName = "Source Document Path",
+				featureClassName = "Feature Class",
+				errorMessageName = "Error Message";
+
+			var output = new List<Dictionary<string, object>>();
+
+			propertyNames = new HashSet<string>();
+			propertyNames.Add(serverNameName);
+			propertyNames.Add(mapServiceNameName);
+			propertyNames.Add(sourceDocumentPathName);
+			propertyNames.Add(featureClassName);
+			propertyNames.Add(errorMessageName);
+
+			foreach (var serverItem in input)
+			{
+				foreach (var mapServiceInfo in serverItem.Value)
+				{
+					if (mapServiceInfo.ConnectionProperties == null)
+					{
+						var dict = new Dictionary<string, object>();
+
+						dict[serverNameName] = serverItem.Key;
+						dict[mapServiceNameName] = mapServiceInfo.MapServiceName;
+						dict[sourceDocumentPathName] = mapServiceInfo.SourceDocumentPath;
+						dict[errorMessageName] = mapServiceInfo.ErrorMessage;
+					}
+					else if (mapServiceInfo.ConnectionProperties.Count < 1)
+					{
+						var dict = new Dictionary<string, object>();
+						dict[serverNameName] = serverItem.Key;
+						dict[mapServiceNameName] = mapServiceInfo.MapServiceName;
+						dict[sourceDocumentPathName] = mapServiceInfo.SourceDocumentPath;
+						dict[errorMessageName] = mapServiceInfo.ErrorMessage;
+						output.Add(dict);
+					}
+					else
+					{
+						foreach (var cp in mapServiceInfo.ConnectionProperties)
+						{
+							var dict = new Dictionary<string, object>();
+							dict[serverNameName] = serverItem.Key;
+							dict[mapServiceNameName] = mapServiceInfo.MapServiceName;
+							dict[sourceDocumentPathName] = mapServiceInfo.SourceDocumentPath;
+							dict[errorMessageName] = mapServiceInfo.ErrorMessage;
+							dict[featureClassName] = cp.FeatureClassName;
+							foreach (var kvp in cp.Properties)
+							{
+								propertyNames.Add(kvp.Key);
+								dict[kvp.Key] = kvp.Value;
+							}
+							output.Add(dict);
+						}
+					}
+
+				}
+			}
+
+			return output;
+		}
+
+		public static void ToCsv(this IDictionary<string, List<MapServiceInfo>> input, TextWriter writer)
+		{
+			if (writer == null)
+			{
+				throw new ArgumentNullException("writer");
+			}
+			HashSet<string> propertyNamesHashSet;
+			List<Dictionary<string, object>> flattened = input.Flatten(out propertyNamesHashSet);
+			var propertyNames = propertyNamesHashSet.ToArray();
+
+			// Create the column headings...
+			for (int i = 0, l = propertyNames.Length; i < l; i++)
+			{
+				// Write the separator if this is not the first property name.
+				if (i > 0) {
+					writer.Write(',');
+				}
+				// Write the property name.
+				writer.Write("\"{0}\"", propertyNames.ElementAt(i));
+
+				// Write the new line character if this is the last property name.
+				if (i == l - 1)
+				{
+					writer.WriteLine();
+				}
+			}
+
+			// Add the data rows.
+			foreach (var dict in flattened)
+			{
+				string propertyName;
+				for (int i = 0, l = propertyNames.Length; i < l; i++)
+				{
+					propertyName = propertyNames[i];
+					if (i > 0)
+					{
+						writer.Write(',');
+					}
+					if (dict.ContainsKey(propertyName))
+					{
+						writer.Write(dict[propertyName]);
+					}
+				}
+				writer.WriteLine();
+			}
 		}
 	}
 }
