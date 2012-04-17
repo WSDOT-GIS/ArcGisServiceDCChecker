@@ -220,6 +220,7 @@ namespace ArcGisServiceDCChecker
 			foreach (var dict in flattened)
 			{
 				string propertyName;
+				object propertyValue;
 				for (int i = 0, l = propertyNames.Length; i < l; i++)
 				{
 					propertyName = propertyNames[i];
@@ -229,7 +230,23 @@ namespace ArcGisServiceDCChecker
 					}
 					if (dict.ContainsKey(propertyName))
 					{
-						writer.Write(dict[propertyName]);
+						propertyValue = dict[propertyName];
+						if (propertyValue != null)
+						{
+							if (propertyValue.GetType() == typeof(string))
+							{
+								writer.Write("\"{0}\"", propertyValue);
+							}
+							else
+							{
+								writer.Write(propertyValue);
+
+							}
+						}
+						else
+						{
+							writer.Write(propertyValue);
+						}
 					}
 				}
 				writer.WriteLine();
