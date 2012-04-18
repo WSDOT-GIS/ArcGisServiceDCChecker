@@ -26,11 +26,11 @@ Edit the .config file before running the .exe file.  The settings are described 
 ### Servers ###
 This is a comma-separated string containing the names of the servers that will be tested.
 
-### OutputFile ###
-This setting controls where the output is written to.
+### OutputCsv ###
+This setting controls where the output CSV file is written to.
 
-### JQueryUrl ###
-This setting specifies the path to the JQuery JavaScript library, which is used by the output file.
+### OutputJson ###
+This setting controls where the output JSON file is written to.
 
 ## Limitations ##
 * In order to run the application, you must be an administrator on all of the servers specified in the 'Servers' setting.

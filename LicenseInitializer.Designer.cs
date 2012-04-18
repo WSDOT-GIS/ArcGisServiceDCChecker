@@ -11,9 +11,8 @@ namespace ArcGisServiceDCChecker
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Text;
-	using ESRI.ArcGIS.esriSystem;
 	using ESRI.ArcGIS;
+	using ESRI.ArcGIS.esriSystem;
 
 	/// <summary>
 	/// Initialize ArcObjects runtime environment for this application
